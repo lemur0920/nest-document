@@ -1,14 +1,16 @@
 import {
   Body,
-  Controller, DefaultValuePipe,
+  Controller,
+  DefaultValuePipe,
   Get,
-  Param, ParseBoolPipe,
+  Param,
+  ParseBoolPipe,
   ParseIntPipe,
   ParseUUIDPipe,
   Post,
   Put,
   Query,
-  UseFilters, UseGuards
+  UseGuards, UseInterceptors
 } from '@nestjs/common';
 import { CreateCatDto } from '../dto/create-cat.dto';
 import { UpdateCatDto } from '../dto/UpdateCatDto';
@@ -16,14 +18,18 @@ import { CatsService } from './cats.service';
 import { ValidatationPipe } from '../common/validation.pipe';
 import { RolesGuard } from '../common/roles.guard';
 import { Roles } from '../common/roles.decorator';
+import { Role } from './role.enum';
+import { LoggingInterceptor } from '../common/logging.interceptor';
 
 @Controller('cats')
 @UseGuards(new RolesGuard())
+@UseInterceptors(LoggingInterceptor)
 export class CatsController {
   constructor(private catsService: CatsService) {}
   @Post()
-  @Roles(['admin'])
-  async create(@Body(new ValidatationPipe()) createCatDto: CreateCatDto) {
+  @Roles(Role.Admin)
+  @RequiredPermissions(Permission.CREATED_CAT)
+  create(@Body() createCatDto: CreateCatDto) {
     this.catsService.create(createCatDto);
   }
 
