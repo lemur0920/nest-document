@@ -6,9 +6,10 @@ import { CatsService } from './cats/cats.service';
 import { CatsModule } from './cats/cats.module';
 import { logger } from './logger.middleware';
 import { APP_FILTER } from '@nestjs/core';
+import { ConfigModule } from './common/config.module';
 
 @Module({
-  imports: [CatsModule],
+  imports: [CatsModule, ConfigModule.register({ folder: './config' })],
   controllers: [AppController, CatsController],
   providers: [
     {

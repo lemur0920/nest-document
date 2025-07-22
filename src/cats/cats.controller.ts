@@ -20,6 +20,8 @@ import { RolesGuard } from '../common/roles.guard';
 import { Roles } from '../common/roles.decorator';
 import { Role } from './role.enum';
 import { LoggingInterceptor } from '../common/logging.interceptor';
+import { User } from '../common/user.decorator';
+import { Auth } from '../common/auth.decorator';
 
 @Controller('cats')
 @UseGuards(new RolesGuard())
@@ -41,9 +43,16 @@ export class CatsController {
     return this.catsService.findAll({ activeOnly, page })
   }
 
-  @Get(':id')
-  async findOne(@Param('id', new ParseIntPipe()) id) {
-    return this.catsService.findOne(id);
+  @Get('users')
+  @Auth('admin')
+  findAllUsers() {}
+
+  @Get()
+  async findOne(
+    @User(new ValidatationPipe({ validationCustomDecorators: true }))
+    user: UserEntity,
+  ) {
+    console.log(user);
   }
 
   @Put(':id')
