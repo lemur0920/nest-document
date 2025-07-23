@@ -4,10 +4,20 @@ import { AllExceptionsFilter, HttpExceptionFilter } from './common/http-exceptio
 import { ValidatationPipe } from './common/validation.pipe';
 import * as process from 'process';
 import { RolesGuard } from './common/roles.guard';
+import cookieParser from 'cookie-parser';
+import session from 'express-session';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const { httpAdapter } = app.get(HttpAdapterHost);
+  app.use(
+    cookieParser(),
+    session({
+      secret: 'my-secret',
+      resave: false,
+      saveUninitialized: false,
+      })
+    );
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
   app.useGlobalPipes(
     new ValidatationPipe({

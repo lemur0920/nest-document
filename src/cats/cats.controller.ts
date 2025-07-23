@@ -1,15 +1,15 @@
 import {
   Body,
   Controller,
-  DefaultValuePipe,
-  Get,
+  DefaultValuePipe, FileTypeValidator,
+  Get, MaxFileSizeValidator,
   Param,
-  ParseBoolPipe,
+  ParseBoolPipe, ParseFilePipe, ParseFilePipeBuilder,
   ParseIntPipe,
   ParseUUIDPipe,
   Post,
   Put,
-  Query, SetMetadata,
+  Query, Req, SetMetadata, UploadedFile, UploadedFiles,
   UseGuards, UseInterceptors, UsePipes
 } from '@nestjs/common';
 import { CreateCatDto } from '../dto/create-cat.dto';
@@ -22,6 +22,8 @@ import { Role } from './role.enum';
 import { LoggingInterceptor } from '../common/logging.interceptor';
 import { User } from '../common/user.decorator';
 import { Auth } from '../common/auth.decorator';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FileSizeValidationPipe } from '../common/file-upload';
 
 @Roles(['user'])
 @Controller('cats')
@@ -48,25 +50,25 @@ export class CatsController {
   @UsePipes(new ValidatationPipe({ transform: true }))
   async create(@Body() createCatDto: CreateCatDto) {
     this.catsService.create(createCatDto);
-}
+  }
 
-@Get(':id')
-findOne(@Param('id') id: number) {
-    // 기본적으로 모든 경로 매개변수와 쿼리 매개변수는 네트워크를 통해 string으로 전달 됨. 위에 id를 number로 지정했기 때문에
-    // validatationPipe는 문자열 식별자를 숫자로 자동 변환하려고 시도함.
-    console.log(typeof id === 'number'); // true
-  return 'This action returns a user';
-}
+  @Get(':id')
+  findOne(@Param('id') id: number) {
+      // 기본적으로 모든 경로 매개변수와 쿼리 매개변수는 네트워크를 통해 string으로 전달 됨. 위에 id를 number로 지정했기 때문에
+      // validatationPipe는 문자열 식별자를 숫자로 자동 변환하려고 시도함.
+      console.log(typeof id === 'number'); // true
+    return 'This action returns a user';
+  }
 
-@Get(':id')
-findOne(
-  @Param('id', ParseIntPipe) id: number,
-  @Query('sort', ParseBoolPipe) sort: boolean,
-) {
-    console.log(typeof id === 'number'); // true
-    console.log(typeof sort === 'boolean'); // true
-    return 'this action returns a user';
-}
+  @Get(':id')
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('sort', ParseBoolPipe) sort: boolean,
+  ) {
+      console.log(typeof id === 'number'); // true
+      console.log(typeof sort === 'boolean'); // true
+      return 'this action returns a user';
+  }
 
   @Get()
   @Roles('admin')
@@ -90,4 +92,22 @@ findOne(
   findOne(@Param('uuid', new ParseUUIDPipe()) uuid: string) {
     return this.catsService.findAll(uuid);
   }
+  @Get()
+  findAll(@Req() request: Request, @Session() session: Record) {
+    session.visits = session.visits ? session.visits + 1 | 1;
+    request.session.visits = request.session.visits ? request.session.visits + 1 : 1;
+}
+
+  @Post('upload')
+  @UseInterceptors(FilesFieldsInterceptor([
+    { name: 'avatar', maxCount: 1 },
+    { name: 'background', maxCount: 1 },
+  ]))
+  uploadFile(@UploadedFiles() files: { avatar?: Express.Multer.File[], background?: Express.Multer.File[] }) {
+    console.log(files);
+}
+
+
+
+
 }

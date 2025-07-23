@@ -1,7 +1,9 @@
-import { Controller, Get, Req } from "@nestjs/common";
+import { Controller, Get, Req, UseInterceptors } from '@nestjs/common';
 import { AppService } from './app.service';
+import { CacheInterceptor } from '@nestjs/cache-manager';
 
 @Controller('cats')
+@UseInterceptors(CacheInterceptor)
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
@@ -10,7 +12,15 @@ export class AppController {
     return this.appService.getHello();
   }
   @Get()
-  findAll(@Req request: Request): string {
-    return 'This action returns all cats';
+  findAll(): string[] {
+    return [];
+  }
+
+  @Get()
+  root(@Res() res: Response) {
+    return res.render(
+      this.appService.getViewName(),
+      { message: 'Hello world!' },
+    );
   }
 }
