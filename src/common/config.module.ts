@@ -1,12 +1,9 @@
 import { DynamicModule, Module } from '@nestjs/common';
+import { ConfigService } from './config.service';
+import { ConfigurableModuleClass } from './config.module-definition';
 
-@Module({})
-export class ConfigModule {
-  static register(): DynamicModule {
-    return {
-      module: ConfigModule,
-      providers: [ConfigService],
-      exports: [ConfigService],
-    };
-  }
-}
+@Module({
+  providers: [ConfigService],
+  exports: [ConfigService],
+})
+export class ConfigModule extends ConfigurableModuleClass {}

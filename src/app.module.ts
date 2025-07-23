@@ -6,10 +6,17 @@ import { CatsService } from './cats/cats.service';
 import { CatsModule } from './cats/cats.module';
 import { logger } from './logger.middleware';
 import { APP_FILTER } from '@nestjs/core';
-import { ConfigModule } from './common/config.module';
+import { ConfigModule } from '@nestjs/config';
+import { validate } from './common/env.validation';
 
 @Module({
-  imports: [CatsModule, ConfigModule.register({ folder: './config' })],
+  imports: [
+    CatsModule,
+    ConfigModule.forRoot({
+      validate,
+      expandVariables: true,
+    }),
+  ],
   controllers: [AppController, CatsController],
   providers: [
     {

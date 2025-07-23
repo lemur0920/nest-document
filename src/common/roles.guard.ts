@@ -7,7 +7,7 @@ import { constructor } from '@typescript-eslint/eslint-plugin';
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
-
+  const roles = this.reflector.get('roles', context.getHandler());
   canActivate(context: ExecutionContext): boolean {
     const requiredRoles = this.reflector.getAllAndOverride(ROLES_KEY, [
       context.getHandler(),

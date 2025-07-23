@@ -9,8 +9,8 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
-  Query,
-  UseGuards, UseInterceptors
+  Query, SetMetadata,
+  UseGuards, UseInterceptors, UsePipes
 } from '@nestjs/common';
 import { CreateCatDto } from '../dto/create-cat.dto';
 import { UpdateCatDto } from '../dto/UpdateCatDto';
@@ -23,6 +23,7 @@ import { LoggingInterceptor } from '../common/logging.interceptor';
 import { User } from '../common/user.decorator';
 import { Auth } from '../common/auth.decorator';
 
+@Roles(['user'])
 @Controller('cats')
 @UseGuards(new RolesGuard())
 @UseInterceptors(LoggingInterceptor)
@@ -43,15 +44,40 @@ export class CatsController {
     return this.catsService.findAll({ activeOnly, page })
   }
 
-  @Get('users')
-  @Auth('admin')
-  findAllUsers() {}
+  @Post()
+  @UsePipes(new ValidatationPipe({ transform: true }))
+  async create(@Body() createCatDto: CreateCatDto) {
+    this.catsService.create(createCatDto);
+}
+
+@Get(':id')
+findOne(@Param('id') id: number) {
+    // 기본적으로 모든 경로 매개변수와 쿼리 매개변수는 네트워크를 통해 string으로 전달 됨. 위에 id를 number로 지정했기 때문에
+    // validatationPipe는 문자열 식별자를 숫자로 자동 변환하려고 시도함.
+    console.log(typeof id === 'number'); // true
+  return 'This action returns a user';
+}
+
+@Get(':id')
+findOne(
+  @Param('id', ParseIntPipe) id: number,
+  @Query('sort', ParseBoolPipe) sort: boolean,
+) {
+    console.log(typeof id === 'number'); // true
+    console.log(typeof sort === 'boolean'); // true
+    return 'this action returns a user';
+}
 
   @Get()
+  @Roles('admin')
+  @SetMetadata('roles', ['admin']) // 저수준 방식
   async findOne(
     @User(new ValidatationPipe({ validationCustomDecorators: true }))
     user: UserEntity,
   ) {
+    const roles = this.reflector.getAllAndOverride(Roles, [context.getHandler(), context.getClass()]);
+    // 병합
+    const roles = this.reflector.getAllAndMerge(Roles, [context.getHandler(), context.getClass()]);
     console.log(user);
   }
 

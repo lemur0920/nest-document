@@ -1,17 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import * as path from 'path';
+import { Inject, Injectable, Scope } from '@nestjs/common';
+import { MODULE_OPTIONS_TOKEN } from './config.module-definition';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class ConfigService {
   private readonly envConfig: EnvConfig:
 
-  constructor() {
-    const options = { folder: './config' };
-
-    const filePath = `${process.env.NODE_ENV || 'development'}.env`;
-    const envFile = path.resolve(__dirname, '../../', options.folder, filePath);
-    this.envConfig = dotenv.parse(fs.readFileSync(envFile));
-  }
+  constructor(@Inject(MODULE_OPTIONS_TOKEN) private options: ConfigModuleOptions) {}
 
   get(key: string): string {
     return this.envConfig[key];
